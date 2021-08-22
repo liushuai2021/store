@@ -1,0 +1,105 @@
+
+company数据库：
+	|--dept:部门表
+		|--`deptno` 部门编号
+		|--`dname`  部门名称
+		|--`loc`    部门所在地址
+  
+
+	|--employees:员工表
+		|--`empno`	员工编号
+		|--`ename`	员工姓名
+		|--`job`	工作
+		|--`MGR`	上级领导
+		|--`hiredate`   入职日期
+		|--`sal`	薪资
+		|--`comm`       将金
+		|--`deptno`     部门编号
+
+单表查询练习
+
+/*
+	1. 查询出部门编号为30的所有员工
+		SELECT *FROM t_employees WHERE deptno=30
+	2. 所有经理的姓名、编号和部门编号。
+		SELECT *FROM t_employees WHERE job ="经理"
+	3. 找出奖金高于工资的员工。
+		SELECT *FROM t_employees WHERE comm>sal
+	4. 找出奖金高于工资60%的员工。
+		SELECT *FROM t_employees WHERE comm>sal*0.6
+	5. 找出部门编号为10中所有经理，和部门编号为20中所有分析员的详细资料。		SELECT *FROM t_employees WHERE deptno=10 AND job="经理" OR deptno=20 AND job="分析员"
+	6. 找出部门编号为10中所有经理，部门编号为20中所有分析员，还有即不是经理又不是武装上将但其工资大或等于3000的所有员工详细资料。
+		SELECT *FROM t_employees WHERE (deptno=10 AND job="经理") OR (deptno=20 AND job="分析员") OR (job!="武装经理"AND job!="经理"AND sal>3000)   
+	7. 无奖金或奖金低于1000的员工。
+		SELECT *FROM t_employees WHERE  comm IS NULL OR comm<1000
+	8. 查询名字由三个字组成的员工。
+		SELECT *FROM t_employees WHERE  ename LIKE '___'
+	9. 查询2000年以及以后入职的员工。
+		SELECT *FROM t_employees WHERE  hiredate LIKE '200_%'
+	10. 查询所有员工详细信息，用编号升序排序
+		SELECT *FROM t_employees ORDER BY deptno ASC
+	11. 查询所有员工详细信息，用工资降序排序，如果工资相同使用入职日期升序排序		SELECT *FROM t_employees ORDER BY sal DESC,hiredate ASC
+	12. 查询每个部门的平均工资
+		SELECT  deptno,AVG(sal)FROM t_employees GROUP BY deptno
+	13. 查询每个部门的雇员数量。
+		SELECT  deptno,COUNT(ename)FROM t_employees GROUP BY deptno
+	14. 查询每种工作的最高工资、最低工资、人数
+		SELECT job,MAX(sal),MIN(sal),COUNT(*)雇员数量 FROM t_employees GROUP BY job
+*/
+
+
+
+多表查询练习
+------------------------------------------------------------------------------
+/*
+1. 查出至少有一个员工的部门。显示部门编号、部门名称、部门位置、部门人数。
+*/
+
+SELECT t.deptno,d.dname,d.loc,COUNT(*) FROM t_employees t JOIN t_dept d ON t.deptno=d.deptno GROUP BY t.deptno
+
+/*
+3. 列出所有员工的姓名及其直接上级的姓名。
+*/
+
+SELECT t.ename,d.ename FROM t_employees t,t_employees d WHERE t.MGR=d.empno
+
+/*
+4. 列出受雇日期早于直接上级的所有员工的编号、姓名、部门名称。
+*/
+
+SELECT t.deptno,t.ename,d.dname FROM(SELECT t.deptno,t.ename FROM t_employees t,t_employees d WHERE t.MGR=d.empno AND t.hiredate<d.hiredate) t
+JOIN t_dept d
+ON t.deptno=d.deptno
+
+/*
+5. 列出部门名称和这些部门的员工信息，同时列出那些没有员工的部门
+*/
+SELECT t.*,d.dname,d.loc FROM t_employees t RIGHT OUTER JOIN t_dept d ON t.deptno=d.deptno
+
+/*
+7. 列出最低薪金大于15000的各种工作及从事此工作的员工人数。
+*/
+SELECT job ,COUNT(*)FROM t_employees GROUP BY job HAVING MIN(sal)>15000
+
+/*
+8. 列出在公关部工作的员工的姓名，假定不知道公关部的部门编号。
+*/
+SELECT t.ename ,d.dname FROM t_employees t JOIN t_dept d ON t.deptno=d.deptno AND d.dname="公关部"
+
+/*
+9. 列出薪金高于公司平均薪金的所有员工信息，所在部门名称，上级领导，工资等级。
+*/
+SELECT t.*,d.dname FROM t_dept d
+JOIN  (SELECT t.*,o.ename AS "上级" FROM t_employees t, t_employees o WHERE  t.MGR=o.empno ) t
+ON t.deptno=d.deptno AND sal>(SELECT AVG(sal) FROM t_employees)
+
+/*
+10.列出与张飞从事相同工作的所有员工及部门名称。
+*/
+SELECT t.ename,d.dname FROM t_employees t JOIN  t_dept d ON t.deptno=d.deptno AND job=(SELECT job FROM t_employees WHERE ename="张飞")
+
+/*
+11.列出薪金高于在部门30工作的所有员工的薪金的员工姓名和薪金、部门名称。
+*/
+
+SELECT t.ename,d.dname,t.sal FROM t_employees t JOIN t_dept d ON t.deptno=d.deptno WHERE sal>(SELECT MAX(sal)FROM t_employees WHERE deptno=30)
