@@ -1,99 +1,105 @@
-#让系统随机产生一个随机数
-import random
-i=10000
-count=0
-num3=0
-num5=0
-print("********QAQ切记不要输入非数字，会崩的欧QAQ*********")
-num=random.randint(0,1000)
-while(i>0):
-    count=count+1
-    i=i-500
-    print("您的可用余额为",i)
-    chose=input("请输入数字")
-    chose=int(chose)
-    if chose>num:
-        print("输入数字过大")
-        num3=input("是否花费￥获得提示信息：输入1代表是，输入2代表不是")
-        num3=int(num3)
-        if num3==1:
-            print("金额一共3挡：1000，1500，5000")
-            num4=input("请输入花费金额")
-            num4=int(num4)
-            if num4==1000:
-                i=i-1000
-                if i>0:
-                    print("答案的个位数是",num%10,"偶!")
+'''
+    Chef:厨师
+    Diners：食客
+    Bread：面包
+'''
+import os
+import signal
+from multiprocessing import Process
+import threading
+from threading import Thread
+import time
+import multiprocessing
+start = time.time()
+Bread=500
+D=0
+sleep=0
+class Chef(Thread):
+    username = ""
+    mutex1 = threading.Lock()
+    count = 0
+    def run(self) -> None:
+        global Bread
+        global D
+        global sleep
+        while True:
+            self.mutex1.acquire()
+            if D<6:
+                if Bread <500:
+                    Bread = Bread + 1
+                    self.count=self.count+1
+                    print(self.username, "-------------造了一个面包！还剩", Bread, "个面包！已经造了", self.count, "个面包！")
                 else:
-                    break
-            elif num4==1500:
-                i=i-1500
-                if i>0:
-                    print("答案在后两位数是",num%100,"偶")
-                else:
-                    break
-            elif num4==5000:
-                i=i-5000
-                if i > 0:
-                    print("答案在", num % 1000 + num % 10, "左10位偶")
-                else:
-                    break
+                    for i in range(6):
+                        time.sleep(1)
+                        print(".",end="")
             else:
-                print("输入非法！！")
-        else:
-            print("祝您好运！")
-    elif chose<num:
-        print("输入数字过小")
-        num5 = input("是否花费￥获得提示信息：输入1代表是，输入2代表不是")
-        num5 = int(num5)
-        if num5 == 1:
-            print("金额一共5挡：1000，1500，5000")
-            num6 = input("请输入花费金额")
-            num6 = int(num6)
-            if num6== 1000:
-                i=i-1000
-                if i>0:
-                    print("答案的个位数是",num%10,"偶!")
+                self.mutex1.release()
+                os.kill(os.getpid(), signal.SIGTERM)
+            self.mutex1.release()
+
+class  Diners(Thread):
+    mutex=threading.Lock()
+    username = ""
+    count = 0
+    def run(self) -> None:
+        global D
+        money=3000
+        global Bread
+        while True:
+                self.mutex.acquire()
+                if money>0:
+                    if Bread >0:
+                        Bread = Bread - 1
+                        money = money - 2.5
+                        self.count=self.count+1
+                        print(self.username, "--------------抢了1个面包！还剩",Bread, "个面包！！已经买了", self.count, "个面包！","还剩下",money)
+                        time.sleep(0.1)
+                    else:
+                        for i in range(3):
+                            time.sleep(1)
+
+                    self.mutex.release()
                 else:
-                    break
-            elif num6 == 1500:
-                i=i-1500
-                if i>0:
-                    print("答案的后两位数是",num%100,"偶!")
-                else:
-                    break
-            elif num6 == 5000:
-                i = i - 5000
-                if i>0:
-                    print("答案在",num%1000+num%10,"左10位偶")
-                else:
-                    break
-            else:
-                print("输入非法！！")
-        else:
-            print("祝您好运！")
-    else:
-        print("恭喜，本次猜中，本次幸运数字")
-        i=i+10000
-        num1=input("键盘输入数字1，开始下一轮游戏。输入其他数字结束游戏！")
-        num1=int(num1)
-        if num1==1:
-            print("第",count-1,"轮游戏即将开始")
-            num = random.randint(0, 1000)
-        else:
-            break
-if i>0:
-    print("***********************")
-    print("游戏结束，欢迎您下次再来玩!")
-    print("***********************")
-else:
-    print("T_T")
-    print("余额不足，请继续充值")
+                    print(self.username,"没钱了！")
+                    D = D + 1
+                    self.mutex.release()
+                    time.sleep(50000)
 
 
 
 
 
+Chef01=Chef()
+Chef02=Chef()
+Chef03=Chef()
+Chef01.username="厨师01"
+Chef02.username="厨师02"
+Chef03.username="厨师03"
+
+Chef01.start()
+Chef02.start()
+Chef03.start()
+
+Diners01=Diners()
+Diners02=Diners()
+Diners03=Diners()
+Diners04=Diners()
+Diners05=Diners()
+Diners06=Diners()
+
+Diners01.username="食客01"
+Diners02.username="食客02"
+Diners03.username="食客03"
+Diners04.username="食客04"
+Diners05.username="食客05"
+Diners06.username="食客06"
 
 
+Diners01.start()
+Diners02.start()
+Diners03.start()
+Diners04.start()
+Diners05.start()
+Diners06.start()
 
